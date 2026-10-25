@@ -1,0 +1,10 @@
+# Core stack (ranges, not exact pins - verify with scripts/step1_check_libraries.py)
+ultralytics>=8.3.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+Pillow>=10.0.0
+streamlit>=1.30.0
+# Optional: bundles a free ffmpeg so processed videos play inside the browser (H.264)
+imageio-ffmpeg>=0.4.9
+# PyTorch is installed automatically as a dependency of ultralytics.
+# On Windows without a GPU this installs the CPU-capable build, which is what we want.

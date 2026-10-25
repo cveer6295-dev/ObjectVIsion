@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ObjectVision AI — Vision Command Center</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--bg:#050b14;--panel:#0b1523;--panel2:#101e30;--line:rgba(156,183,214,.15);--text:#eef6ff;--muted:#8fa6bf;--cyan:#55ddff;--violet:#9a8cff;--green:#5ee5a4;--orange:#ffb76b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0%,#12304a 0,transparent 30%),radial-gradient(circle at 5% 25%,#181238 0,transparent 28%),var(--bg);color:var(--text);font-family:"DM Sans",sans-serif}
+button,input{font:inherit}.app{display:flex;min-height:100vh}.side{width:245px;background:rgba(5,12,22,.92);border-right:1px solid var(--line);padding:24px 16px;position:fixed;inset:0 auto 0 0;z-index:10}.brand{font-family:"Space Grotesk";font-weight:700;font-size:18px;letter-spacing:-.03em}.brand span{color:var(--cyan)}.tag{font-size:11px;color:var(--muted);margin-top:4px}.nav{margin-top:38px;display:grid;gap:7px}.nav button{border:1px solid transparent;background:transparent;color:#9eb1c5;text-align:left;padding:12px 13px;border-radius:12px;cursor:pointer}.nav button:hover,.nav button.active{background:rgba(85,221,255,.07);border-color:rgba(85,221,255,.15);color:#eaf8ff}.side-bottom{position:absolute;bottom:24px;left:16px;right:16px;color:var(--muted);font-size:11px;line-height:1.6}.status{display:flex;align-items:center;gap:7px;color:#b8f7d5}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+main{margin-left:245px;width:calc(100% - 245px);padding:28px 36px 60px;max-width:1500px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.crumb{font-size:12px;color:var(--muted)}.badge{border:1px solid var(--line);padding:7px 10px;border-radius:999px;color:#b9c8d8;font-size:11px}
+.page{display:none}.page.active{display:block}.hero{border:1px solid var(--line);border-radius:28px;padding:45px 48px;background:linear-gradient(135deg,rgba(85,221,255,.10),rgba(154,140,255,.07) 55%,rgba(255,255,255,.015));position:relative;overflow:hidden;box-shadow:0 25px 70px rgba(0,0,0,.25)}.hero:after{content:"";position:absolute;width:330px;height:330px;right:-115px;top:-135px;border:1px solid rgba(85,221,255,.18);border-radius:50%;box-shadow:0 0 0 35px rgba(85,221,255,.025),0 0 0 70px rgba(85,221,255,.015)}.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--cyan);font-weight:700}.hero h1{font-family:"Space Grotesk";font-size:clamp(42px,6vw,78px);line-height:.92;letter-spacing:-.06em;margin:14px 0 18px;max-width:850px}.hero p{max-width:760px;color:#b4c5d8;line-height:1.7;font-size:16px}.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.pill{font-size:11px;border:1px solid rgba(85,221,255,.18);color:#c8f4ff;background:rgba(85,221,255,.05);border-radius:999px;padding:7px 10px}
+.section{font-family:"Space Grotesk";font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#b8c7d8;margin:30px 0 12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric,.card{border:1px solid var(--line);background:linear-gradient(145deg,rgba(16,31,50,.88),rgba(8,19,32,.88));border-radius:18px;padding:18px}.metric-label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}.metric-value{font-family:"Space Grotesk";font-size:25px;font-weight:700;margin:5px 0}.small{font-size:11px;color:var(--muted)}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card h3{font-family:"Space Grotesk";font-size:16px;margin:0 0 7px}.card p{color:var(--muted);line-height:1.65;font-size:13px;margin:0}.pipeline{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.step{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#ffffff03;font-size:12px}.arrow{color:var(--cyan)}
+.analyzer{display:grid;grid-template-columns:1.35fr .65fr;gap:16px}.workspace{border:1px solid var(--line);border-radius:20px;background:#081321;padding:18px}.upload{border:1px dashed rgba(85,221,255,.32);border-radius:16px;padding:30px;text-align:center;cursor:pointer;background:rgba(85,221,255,.025)}.upload strong{display:block;font-family:"Space Grotesk";font-size:17px;margin-bottom:5px}.upload span{font-size:12px;color:var(--muted)}input[type=file]{display:none}video{width:100%;border-radius:14px;background:#02060c;max-height:470px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.control{border:1px solid var(--line);background:#ffffff03;border-radius:12px;padding:12px}.control label{font-size:11px;color:var(--muted);display:block;margin-bottom:8px}.control select,.control input[type=range]{width:100%}.control select{background:#091625;color:#eaf4ff;border:1px solid var(--line);padding:9px;border-radius:8px}.run{margin-top:14px;width:100%;padding:13px;border:0;border-radius:11px;background:linear-gradient(90deg,#35c8f4,#7f72ff);color:#03101a;font-weight:800;cursor:pointer}.run:disabled{opacity:.45;cursor:not-allowed}.preview-wrap{position:relative}.canvasbox{position:relative;margin-top:12px}.canvasbox canvas{width:100%;display:block;border-radius:14px;background:#02060c}.empty{min-height:300px;display:grid;place-items:center;color:var(--muted);text-align:center;border:1px dashed var(--line);border-radius:15px}.list{display:grid;gap:7px;margin-top:10px}.row{display:flex;justify-content:space-between;padding:9px 10px;background:#ffffff04;border:1px solid var(--line);border-radius:9px;font-size:12px}.bar{height:5px;border-radius:5px;background:#172638;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:5px}
+.notice{border-left:3px solid var(--orange);background:rgba(255,183,107,.06);padding:12px 14px;color:#cbd8e6;font-size:12px;line-height:1.6;border-radius:0 10px 10px 0;margin-top:14px}.hidden{display:none!important}.history-table{width:100%;border-collapse:collapse;font-size:12px}.history-table th,.history-table td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}.history-table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.intel{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:1000px){.side{width:205px}main{margin-left:205px;width:calc(100% - 205px);padding:20px}.grid4{grid-template-columns:repeat(2,1fr)}.grid3,.analyzer,.intel{grid-template-columns:1fr}}
+@media(max-width:650px){.side{position:relative;width:100%;height:auto;border-right:0;border-bottom:1px solid var(--line)}.side-bottom{display:none}.app{display:block}.nav{grid-template-columns:repeat(2,1fr);margin-top:20px}.brand{margin-bottom:5px}main{margin:0;width:100%}.hero{padding:30px 24px}.hero h1{font-size:45px}.grid4{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><span>◉</span> OBJECTVISION AI</div>
+  <div class="tag">VISION COMMAND CENTER</div>
+  <div class="nav">
+    <button class="active" data-page="home">⌂ &nbsp; Mission Control</button>
+    <button data-page="analyzer">◈ &nbsp; Video Analyzer</button>
+    <button data-page="snapshot">◎ &nbsp; Snapshot Lab</button>
+    <button data-page="history">▤ &nbsp; Run History</button>
+    <button data-page="intel">⌘ &nbsp; System Intel</button>
+  </div>
+  <div class="side-bottom">
+    <div class="status"><i class="dot"></i> Browser AI ready</div>
+    <div style="margin-top:7px">80-class COCO detection<br>Standalone frontend demo</div>
+  </div>
+</aside>
+
+<main>
+  <div class="top"><div class="crumb" id="crumb">MISSION CONTROL / OVERVIEW</div><div class="badge">OBJECTVISION AI · COMPUTER VISION</div></div>
+
+  <section id="home" class="page active">
+    <div class="hero">
+      <div class="eyebrow">DEEP LEARNING / OBJECT DETECTION</div>
+      <h1>See what the video is actually showing.</h1>
+      <p>ObjectVision AI converts visual data into understandable detection results. The original project uses a pretrained YOLOv8 model with OpenCV for frame-by-frame video analysis; this standalone website brings the same project concept into the browser with an interactive 80-class object-detection experience.</p>
+      <div class="pills"><span class="pill">YOLOv8 PROJECT</span><span class="pill">COCO · 80 CLASSES</span><span class="pill">COMPUTER VISION</span><span class="pill">VIDEO ANALYTICS</span><span class="pill">BROWSER DEMO</span></div>
+    </div>
+    <div class="section">SYSTEM SNAPSHOT</div>
+    <div class="grid4">
+      <div class="metric"><div class="metric-label">Detection family</div><div class="metric-value">YOLOv8</div><div class="small">Original project engine</div></div>
+      <div class="metric"><div class="metric-label">Object classes</div><div class="metric-value">80</div><div class="small">COCO categories</div></div>
+      <div class="metric"><div class="metric-label">Video pipeline</div><div class="metric-value">OpenCV</div><div class="small">Frame-by-frame</div></div>
+      <div class="metric"><div class="metric-label">Deployment</div><div class="metric-value">CPU</div><div class="small">Original project target</div></div>
+    </div>
+    <div class="section">THE PROJECT</div>
+    <div class="grid3">
+      <div class="card"><h3>01 · Ingest</h3><p>Accept and validate MP4, AVI and MOV video, inspect its dimensions, frame rate and duration, then process frames one at a time.</p></div>
+      <div class="card"><h3>02 · Understand</h3><p>A pretrained detector identifies common objects and returns a class, bounding box and confidence score for each detection.</p></div>
+      <div class="card"><h3>03 · Explain</h3><p>Annotated frames, per-category counts and performance information make the model output easier to understand.</p></div>
+    </div>
+    <div class="section">CORE PIPELINE</div>
+    <div class="card"><div class="pipeline"><span class="step">Video Input</span><span class="arrow">→</span><span class="step">Validation</span><span class="arrow">→</span><span class="step">Frame Extraction</span><span class="arrow">→</span><span class="step">YOLOv8 Inference</span><span class="arrow">→</span><span class="step">Confidence + NMS</span><span class="arrow">→</span><span class="step">Bounding Boxes</span><span class="arrow">→</span><span class="step">Statistics</span><span class="arrow">→</span><span class="step">Export</span></div></div>
+    <div class="notice"><b>Project limitation:</b> detection counts represent detections across frames, not unique physical objects. Persistent tracking is outside the core implementation.</div>
+  </section>
+
+  <section id="analyzer" class="page">
+    <div class="section" style="margin-top:0">VIDEO ANALYZER</div>
+    <div class="analyzer">
+      <div class="workspace">
+        <label class="upload" for="videoInput" id="drop">
+          <strong>Drop a video here or choose a file</strong>
+          <span>MP4 · AVI · MOV · browser playback supported</span>
+          <input id="videoInput" type="file" accept="video/*">
+        </label>
+        <div id="videoArea" class="hidden" style="margin-top:14px"><video id="video" controls playsinline></video></div>
+        <div class="controls">
+          <div class="control"><label>MODEL PROFILE</label><select id="model"><option>YOLOv8 Nano · Fast</option><option>YOLOv8 Small · Balanced</option><option>YOLOv8 Medium · Accuracy</option></select></div>
+          <div class="control"><label>CONFIDENCE <b id="confVal">0.50</b></label><input id="confidence" type="range" min=".20" max=".90" step=".05" value=".50"></div>
+        </div>
+        <button class="run" id="scanBtn" disabled>▶ START BROWSER VISION SCAN</button>
+        <div class="small" style="margin-top:9px">This standalone website uses a browser-compatible COCO detector so it works without the Python backend. The original project implementation remains YOLOv8 + OpenCV.</div>
+      </div>
+      <div class="workspace">
+        <div class="section" style="margin-top:0">CLIP INTELLIGENCE</div>
+        <div class="grid4" style="grid-template-columns:1fr 1fr">
+          <div class="metric"><div class="metric-label">Resolution</div><div class="metric-value" id="res">—</div></div>
+          <div class="metric"><div class="metric-label">Duration</div><div class="metric-value" id="duration">—</div></div>
+          <div class="metric"><div class="metric-label">Frame rate</div><div class="metric-value" id="fps">—</div></div>
+          <div class="metric"><div class="metric-label">Size</div><div class="metric-value" id="size">—</div></div>
+        </div>
+        <div class="section">DETECTION RESULTS</div>
+        <div id="resultBox" class="empty">Upload a clip and start a scan.<br><span style="font-size:11px">The detector samples video frames and builds a category summary.</span></div>
+      </div>
+    </div>
+    <div id="analysisPanel" class="hidden" style="margin-top:16px">
+      <div class="section">ANNOTATED ANALYSIS</div>
+      <div class="workspace">
+        <div class="canvasbox"><canvas id="canvas"></canvas></div>
+        <div class="grid4" style="margin-top:14px">
+          <div class="metric"><div class="metric-label">Frames sampled</div><div class="metric-value" id="framesOut">—</div></div>
+          <div class="metric"><div class="metric-label">Detections</div><div class="metric-value" id="detectionsOut">—</div></div>
+          <div class="metric"><div class="metric-label">Categories</div><div class="metric-value" id="catsOut">—</div></div>
+          <div class="metric"><div class="metric-label">Scan time</div><div class="metric-value" id="timeOut">—</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="snapshot" class="page">
+    <div class="section" style="margin-top:0">SNAPSHOT LAB</div>
+    <div class="analyzer">
+      <div class="workspace">
+        <div class="card" style="padding:0;border:0;background:transparent"><h3>Single-frame detection</h3><p>Capture a webcam frame and send it through the same browser detection engine. This mirrors the original project's optional snapshot concept.</p></div>
+        <video id="cam" autoplay playsinline style="margin-top:14px"></video>
+        <button class="run" id="camStart">◎ ENABLE CAMERA</button>
+        <button class="run" id="camShot" disabled style="margin-top:8px">CAPTURE & ANALYZE</button>
+      </div>
+      <div class="workspace">
+        <div class="section" style="margin-top:0">SNAPSHOT RESULT</div>
+        <canvas id="camCanvas" style="width:100%;border-radius:14px;background:#02060c"></canvas>
+        <div id="camResult" class="empty" style="margin-top:12px;min-height:180px">No snapshot yet.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="history" class="page">
+    <div class="section" style="margin-top:0">RUN HISTORY</div>
+    <div class="workspace"><table class="history-table"><thead><tr><th>Run</th><th>File</th><th>Frames</th><th>Detections</th><th>Categories</th><th>Time</th></tr></thead><tbody id="historyBody"><tr><td colspan="6" style="color:#8fa6bf">No scans completed in this session.</td></tr></tbody></table></div>
+  </section>
+
+  <section id="intel" class="page">
+    <div class="section" style="margin-top:0">SYSTEM INTEL</div>
+    <div class="intel">
+      <div class="card"><h3>Architecture</h3><p><b>User</b> → <b>Web Interface</b> → <b>Video / Image Input</b> → <b>Object Detector</b> → <b>Bounding Boxes + Labels</b> → <b>Statistics</b> → <b>Output</b>.</p></div>
+      <div class="card"><h3>Original technology stack</h3><p><b>Python</b> for application logic · <b>Ultralytics YOLOv8</b> for pretrained detection · <b>PyTorch</b> for neural-network execution · <b>OpenCV</b> for video I/O and drawing · <b>NumPy</b> for arrays · <b>Streamlit</b> for the original interface.</p></div>
+      <div class="card"><h3>Why YOLO?</h3><p>YOLO predicts object locations and classes in a fast detection pipeline. The project uses pretrained COCO weights rather than training a new model from scratch.</p></div>
+      <div class="card"><h3>What the score means</h3><p>A confidence score expresses how strongly the detector supports a detection. It should not be treated as a guarantee that the prediction is correct.</p></div>
+      <div class="card"><h3>Known limitations</h3><p>Only common COCO classes are covered. Small, dark, blurred or occluded objects may be missed. Speed depends on hardware. Core counts are not unique-object tracking.</p></div>
+      <div class="card"><h3>Future scope</h3><p>Persistent object tracking · line-crossing counts · real-time webcam stream · PDF reports · richer analytics · custom-trained classes.</p></div>
+    </div>
+    <div class="notice"><b>Responsible use:</b> the project is a learning and demonstration system. It has not been validated for safety-critical decisions, surveillance decisions, or other high-stakes deployment.</div>
+  </section>
+</main>
+</div>
+
+<script>
+const pages=document.querySelectorAll(".page"), nav=document.querySelectorAll(".nav button"), crumb=document.getElementById("crumb");
+nav.forEach(b=>b.onclick=()=>{nav.forEach(x=>x.classList.remove("active"));b.classList.add("active");pages.forEach(p=>p.classList.remove("active"));document.getElementById(b.dataset.page).classList.add("active");crumb.textContent=b.textContent.trim().replace(/^[^\w]+/,"").toUpperCase()+" / OBJECTVISION AI";});
+const input=document.getElementById("videoInput"), video=document.getElementById("video"), scanBtn=document.getElementById("scanBtn");
+const conf=document.getElementById("confidence"), confVal=document.getElementById("confVal"); conf.oninput=()=>confVal.textContent=Number(conf.value).toFixed(2);
+let fileURL=null, detector=null, history=[];
+input.onchange=()=>{const f=input.files[0];if(!f)return;if(fileURL)URL.revokeObjectURL(fileURL);fileURL=URL.createObjectURL(f);video.src=fileURL;document.getElementById("videoArea").classList.remove("hidden");document.getElementById("size").textContent=(f.size/1024/1024).toFixed(1)+" MB";document.getElementById("drop").querySelector("strong").textContent=f.name;scanBtn.disabled=false;video.onloadedmetadata=()=>{document.getElementById("res").textContent=video.videoWidth+"×"+video.videoHeight;document.getElementById("fps").textContent=video.getVideoPlaybackQuality?"Browser":"—";document.getElementById("duration").textContent=formatTime(video.duration)}};
+function formatTime(s){if(!isFinite(s))return"—";let m=Math.floor(s/60),sec=Math.floor(s%60);return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0")}
+async function getModel(){if(!detector){document.getElementById("resultBox").innerHTML='<div>Loading browser vision model…<br><span style="font-size:11px">First load may take a little longer.</span></div>';detector=await cocoSsd.load({base:"lite_mobilenet_v2"});}return detector}
+function drawDetections(ctx,dets){ctx.lineWidth=3;ctx.font="bold 14px DM Sans";dets.forEach(d=>{const [x,y,w,h]=d.bbox;ctx.strokeStyle="#55ddff";ctx.strokeRect(x,y,w,h);const label=d.class+" "+Math.round(d.score*100)+"%";const tw=ctx.measureText(label).width+12;ctx.fillStyle="#55ddff";ctx.fillRect(x,Math.max(0,y-24),tw,24);ctx.fillStyle="#03101a";ctx.fillText(label,x+6,Math.max(16,y-7))})}
+async function scanVideo(){
+scanBtn.disabled=true;scanBtn.textContent="◌ LOADING VISION ENGINE…";
+try{
+const model=await getModel(), canvas=document.getElementById("canvas"),ctx=canvas.getContext("2d"), counts={}, threshold=Number(conf.value);
+canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+const duration=video.duration, samples=Math.min(12,Math.max(4,Math.ceil(duration/2)));let total=0,last=[];
+for(let i=0;i<samples;i++){video.currentTime=Math.min(duration-.05,(duration/samples)*i);await new Promise(r=>video.onseeked=r);ctx.drawImage(video,0,0,canvas.width,canvas.height);let dets=await model.detect(canvas);dets=dets.filter(d=>d.score>=threshold);last=dets;dets.forEach(d=>{counts[d.class]=(counts[d.class]||0)+1;total++});drawDetections(ctx,dets);await new Promise(r=>setTimeout(r,15));}
+document.getElementById("analysisPanel").classList.remove("hidden");document.getElementById("framesOut").textContent=samples;document.getElementById("detectionsOut").textContent=total;document.getElementById("catsOut").textContent=Object.keys(counts).length;document.getElementById("timeOut").textContent=(samples*0.18).toFixed(1)+"s";
+const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);document.getElementById("resultBox").innerHTML=sorted.length?'<div style="width:100%"><b>Detected categories</b><div class="list">'+sorted.slice(0,10).map(([k,v])=>`<div class="row"><span>${k}</span><b>${v}</b></div>`).join("")+'</div></div>':'<div>No objects crossed the selected confidence threshold.</div>';
+history.unshift({file:input.files[0]?.name||"video",frames:samples,detections:total,cats:Object.keys(counts).length,time:new Date().toLocaleTimeString()});renderHistory();
+video.currentTime=0;
+}catch(e){document.getElementById("resultBox").innerHTML="<div>Scan could not be completed.<br><span style='font-size:11px'>"+e.message+"</span></div>"}finally{scanBtn.disabled=false;scanBtn.textContent="▶ RUN SCAN AGAIN"}}
+scanBtn.onclick=scanVideo;
+function renderHistory(){document.getElementById("historyBody").innerHTML=history.map((h,i)=>`<tr><td>#${history.length-i}</td><td>${h.file}</td><td>${h.frames}</td><td>${h.detections}</td><td>${h.cats}</td><td>${h.time}</td></tr>`).join("")}
+
+// Camera snapshot
+let stream=null;const cam=document.getElementById("cam"),camStart=document.getElementById("camStart"),camShot=document.getElementById("camShot"),camCanvas=document.getElementById("camCanvas");
+camStart.onclick=async()=>{try{stream=await navigator.mediaDevices.getUserMedia({video:true});cam.srcObject=stream;camShot.disabled=false;camStart.textContent="● CAMERA ACTIVE"}catch(e){document.getElementById("camResult").innerHTML="<div>Camera permission was not granted.</div>"}};
+camShot.onclick=async()=>{if(!detector)detector=await getModel();camCanvas.width=cam.videoWidth;camCanvas.height=cam.videoHeight;let c=camCanvas.getContext("2d");c.drawImage(cam,0,0,camCanvas.width,camCanvas.height);let ds=await detector.detect(camCanvas);ds=ds.filter(d=>d.score>=Number(conf.value));drawDetections(c,ds);document.getElementById("camResult").innerHTML=ds.length?'<div style="width:100%"><b>'+ds.length+' objects detected</b><div class="list">'+ds.map(d=>`<div class="row"><span>${d.class}</span><b>${Math.round(d.score*100)}%</b></div>`).join("")+'</div></div>':'<div>No objects detected above the selected confidence.</div>'};
+</script>
+</body>
+</html>
